@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AddItemScreen from './src/screens/AddItemScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
@@ -14,16 +15,17 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'settings', label: '设置' },
 ];
 
-export default function App() {
+function AppContent() {
   const [tab, setTab] = useState<Tab>('home');
   const [refreshKey, setRefreshKey] = useState(0);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     refreshDailyReminder();
   }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.content}>
         {tab === 'home' && <HomeScreen refreshKey={refreshKey} />}
         {tab === 'add' && (
@@ -37,7 +39,7 @@ export default function App() {
         {tab === 'settings' && <SettingsScreen />}
       </View>
 
-      <View style={styles.tabBar}>
+      <View style={[styles.tabBar, { paddingBottom: insets.bottom }]}>
         {TABS.map((t) => (
           <Pressable key={t.key} style={styles.tabItem} onPress={() => setTab(t.key)}>
             <Text style={[styles.tabLabel, tab === t.key && styles.tabLabelActive]}>{t.label}</Text>
@@ -45,7 +47,15 @@ export default function App() {
         ))}
       </View>
       <StatusBar style="auto" />
-    </SafeAreaView>
+    </View>
+  );
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <AppContent />
+    </SafeAreaProvider>
   );
 }
 
@@ -61,11 +71,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#ddd',
+    paddingTop: 12,
   },
   tabItem: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 12,
   },
   tabLabel: {
     fontSize: 14,

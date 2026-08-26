@@ -35,8 +35,6 @@ export default function AddItemScreen({ onSaved }: Props) {
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ['images'],
       quality: 0.3,
-      allowsEditing: true,
-      aspect: [4, 3],
     });
 
     if (!result.canceled && result.assets.length > 0) {
