@@ -1,0 +1,24 @@
+# 绝对禁止扫描的依赖大文件夹（防止卡死和爆上下文）
+node_modules/
+.expo/
+web-build/
+
+# 打包产物和编译缓存
+android/
+ios/
+bin/
+build/
+dist/
+.output/
+
+# 版本控制与系统杂项
+.git/
+.svn/
+.DS_Store
+Thumbs.db
+
+# 各种本地密钥和环境变量（防止隐私泄露给 AI）
+.env
+.env.*
+*.pem
+*.key
