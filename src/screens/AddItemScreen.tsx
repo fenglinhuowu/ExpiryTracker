@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   Image,
   Pressable,
@@ -10,7 +9,6 @@ import {
   View,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { recognizeText } from '@react-native-ml-kit/text-recognition';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { addItem } from '../services/db';
 import { refreshDailyReminder } from '../services/notifications';
@@ -26,7 +24,6 @@ export default function AddItemScreen({ onSaved }: Props) {
   const [location, setLocation] = useState('');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [recognizing, setRecognizing] = useState(false);
 
   const handlePickImage = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -37,30 +34,13 @@ export default function AddItemScreen({ onSaved }: Props) {
 
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ['images'],
-      quality: 0.5,
+      quality: 0.3,
       allowsEditing: true,
       aspect: [4, 3],
     });
 
     if (!result.canceled && result.assets.length > 0) {
-      const uri = result.assets[0].uri;
-      setPhotoUri(uri);
-      recognizeTextFromImage(uri);
-    }
-  };
-
-  const recognizeTextFromImage = async (uri: string) => {
-    setRecognizing(true);
-    try {
-      const result = await recognizeText(uri);
-      if (result.text && result.text.trim()) {
-        const cleaned = result.text.trim().replace(/\n+/g, ' ').substring(0, 50);
-        setName(cleaned);
-      }
-    } catch {
-      // OCR 失败时保留手动输入
-    } finally {
-      setRecognizing(false);
+      setPhotoUri(result.assets[0].uri);
     }
   };
 
@@ -75,10 +55,6 @@ export default function AddItemScreen({ onSaved }: Props) {
   };
 
   const handleSubmit = async () => {
-    if (!name.trim()) {
-      Alert.alert('请输入商品名称');
-      return;
-    }
     if (!isValidDateString(expiryDate)) {
       Alert.alert('请输入正确的到期日期', '格式为 YYYY-MM-DD');
       return;
@@ -96,26 +72,22 @@ export default function AddItemScreen({ onSaved }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>商品名称</Text>
-      <View style={styles.nameRow}>
-        <TextInput
-          style={[styles.input, styles.nameInput]}
-          value={name}
-          onChangeText={setName}
-          placeholder="例如：牛奶"
-        />
-        <Pressable style={styles.cameraButton} onPress={handlePickImage}>
-          {recognizing ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <Text style={styles.cameraButtonText}>拍照识别</Text>
-          )}
-        </Pressable>
-      </View>
+      <Text style={styles.label}>商品名称（选填）</Text>
+      <TextInput
+        style={styles.input}
+        value={name}
+        onChangeText={setName}
+        placeholder="例如：牛奶"
+      />
 
-      {photoUri && (
-        <Image source={{ uri: photoUri }} style={styles.photoPreview} />
-      )}
+      <Text style={styles.label}>商品照片</Text>
+      <Pressable style={styles.photoButton} onPress={handlePickImage}>
+        {photoUri ? (
+          <Image source={{ uri: photoUri }} style={styles.photoPreview} />
+        ) : (
+          <Text style={styles.photoButtonText}>拍照</Text>
+        )}
+      </Pressable>
 
       <Text style={styles.label}>到期日期</Text>
       <Pressable style={styles.input} onPress={() => setShowDatePicker(true)}>
@@ -127,7 +99,7 @@ export default function AddItemScreen({ onSaved }: Props) {
         <DateTimePicker
           value={new Date()}
           mode="date"
-          display="default"
+          display="calendar"
           onChange={handleDateChange}
           minimumDate={new Date()}
         />
@@ -160,11 +132,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     marginTop: 12,
   },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -173,28 +140,23 @@ const styles = StyleSheet.create({
     fontSize: 15,
     justifyContent: 'center',
   },
-  nameInput: {
-    flex: 1,
-  },
-  cameraButton: {
-    backgroundColor: '#007aff',
+  photoButton: {
+    borderWidth: 1,
+    borderColor: '#ccc',
     borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    minWidth: 90,
+    height: 120,
     alignItems: 'center',
-  },
-  cameraButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
   photoPreview: {
     width: '100%',
-    height: 120,
-    borderRadius: 8,
-    marginTop: 8,
+    height: '100%',
     resizeMode: 'cover',
+  },
+  photoButtonText: {
+    color: '#007aff',
+    fontSize: 15,
   },
   dateText: {
     fontSize: 15,

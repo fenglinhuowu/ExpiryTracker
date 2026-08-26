@@ -2,7 +2,7 @@ import * as SQLite from 'expo-sqlite';
 
 export interface Item {
   id: number;
-  name: string;
+  name: string | null;
   expiryDate: string; // YYYY-MM-DD
   location: string;
   photoUri: string | null;
@@ -18,7 +18,7 @@ function getDb(): Promise<SQLite.SQLiteDatabase> {
         PRAGMA journal_mode = WAL;
         CREATE TABLE IF NOT EXISTS items (
           id INTEGER PRIMARY KEY NOT NULL,
-          name TEXT NOT NULL,
+          name TEXT,
           expiryDate TEXT NOT NULL,
           location TEXT,
           photoUri TEXT,

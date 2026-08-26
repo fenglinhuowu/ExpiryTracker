@@ -66,8 +66,8 @@ export async function refreshDailyReminder(): Promise<void> {
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
-      hour: 9,
-      minute: 0,
+      hour: settings.notificationHour,
+      minute: settings.notificationMinute,
       channelId: CHANNEL_ID,
     },
   });

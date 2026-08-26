@@ -36,6 +36,7 @@ export default function HomeScreen({ refreshKey }: Props) {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>商品临期提醒助手</Text>
       <CollapsibleSection title="即将过期" count={soon.length} tintColor="#d9534f">
         {soon.length === 0 ? (
           <Text style={styles.empty}>暂无即将过期的商品</Text>
@@ -68,8 +69,15 @@ export default function HomeScreen({ refreshKey }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    paddingVertical: 60,
+    paddingHorizontal: 20,
     backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 16,
   },
   empty: {
     color: '#999',
