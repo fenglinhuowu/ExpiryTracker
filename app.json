@@ -29,7 +29,13 @@
     },
     "plugins": [
       "expo-sqlite",
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "需要相机权限来拍摄商品照片"
+        }
+      ]
     ]
   }
 }

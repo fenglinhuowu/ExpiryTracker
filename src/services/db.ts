@@ -5,6 +5,7 @@ export interface Item {
   name: string;
   expiryDate: string; // YYYY-MM-DD
   location: string;
+  photoUri: string | null;
   createdAt: number;
 }
 
@@ -19,23 +20,36 @@ function getDb(): Promise<SQLite.SQLiteDatabase> {
           id INTEGER PRIMARY KEY NOT NULL,
           name TEXT NOT NULL,
           expiryDate TEXT NOT NULL,
-          location TEXT NOT NULL,
+          location TEXT,
+          photoUri TEXT,
           createdAt INTEGER NOT NULL
         );
       `);
+      // Migration: add photoUri column if it doesn't exist
+      try {
+        await db.execAsync(`ALTER TABLE items ADD COLUMN photoUri TEXT;`);
+      } catch {
+        // column already exists
+      }
       return db;
     });
   }
   return dbPromise;
 }
 
-export async function addItem(name: string, expiryDate: string, location: string): Promise<void> {
+export async function addItem(
+  name: string,
+  expiryDate: string,
+  location: string,
+  photoUri: string | null
+): Promise<void> {
   const db = await getDb();
   await db.runAsync(
-    'INSERT INTO items (name, expiryDate, location, createdAt) VALUES (?, ?, ?, ?)',
+    'INSERT INTO items (name, expiryDate, location, photoUri, createdAt) VALUES (?, ?, ?, ?, ?)',
     name,
     expiryDate,
     location,
+    photoUri,
     Date.now()
   );
 }

@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Item } from '../services/db';
 import { daysUntil } from '../utils/date';
 
@@ -16,10 +16,14 @@ export default function ItemRow({ item, onDelete }: Props) {
 
   return (
     <View style={styles.row}>
+      {item.photoUri && (
+        <Image source={{ uri: item.photoUri }} style={styles.photo} />
+      )}
       <View style={styles.info}>
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.meta}>
-          {item.location} · {item.expiryDate} · {statusText}
+          {item.location ? `${item.location} · ` : ''}
+          {item.expiryDate} · {statusText}
         </Text>
       </View>
       <Pressable onPress={() => onDelete(item.id)} hitSlop={8}>
@@ -37,6 +41,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#ddd',
+  },
+  photo: {
+    width: 48,
+    height: 48,
+    borderRadius: 6,
+    marginRight: 10,
+    backgroundColor: '#f0f0f0',
   },
   info: {
     flex: 1,
