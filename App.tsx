@@ -18,11 +18,22 @@ const TABS: { key: Tab; label: string }[] = [
 function AppContent() {
   const [tab, setTab] = useState<Tab>('home');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [loading, setLoading] = useState(true);
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
     refreshDailyReminder();
+    const timer = setTimeout(() => setLoading(false), 1000);
+    return () => clearTimeout(timer);
   }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>加载中</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -60,6 +71,16 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#999',
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',

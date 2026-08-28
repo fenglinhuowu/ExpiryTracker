@@ -9,8 +9,8 @@ const CHANNEL_ID = 'expiry-reminders';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldPlaySound: false,
-    shouldSetBadge: false,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
     shouldShowBanner: true,
     shouldShowList: true,
   }),
@@ -21,6 +21,7 @@ export async function requestNotificationPermissions(): Promise<boolean> {
     await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
       name: '过期提醒',
       importance: Notifications.AndroidImportance.HIGH,
+      sound: 'default',
     });
   }
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -52,27 +53,17 @@ export async function refreshDailyReminder(): Promise<void> {
   }
 
   const items = await getAllItems();
-  const expiredCount = items.filter((item) => daysUntil(item.expiryDate) < 0).length;
-  const expiringCount = items.filter((item) => daysUntil(item.expiryDate) >= 0 && daysUntil(item.expiryDate) <= settings.reminderDaysBefore).length;
+  const soonCount = items.filter((item) => daysUntil(item.expiryDate) <= settings.reminderDaysBefore).length;
 
-  if (expiredCount === 0 && expiringCount === 0) {
+  if (soonCount === 0) {
     return;
-  }
-
-  let body = '';
-  if (expiredCount > 0 && expiringCount > 0) {
-    body = `您有 ${expiredCount} 件商品已过期，${expiringCount} 件即将过期，请及时处理`;
-  } else if (expiredCount > 0) {
-    body = `您有 ${expiredCount} 件商品已过期，请及时处理`;
-  } else {
-    body = `您有 ${expiringCount} 件商品即将过期，请及时处理`;
   }
 
   await Notifications.scheduleNotificationAsync({
     identifier: DAILY_CHECK_IDENTIFIER,
     content: {
       title: '过期提醒',
-      body,
+      body: `您有 ${soonCount} 件商品即将过期，请及时处理`,
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
