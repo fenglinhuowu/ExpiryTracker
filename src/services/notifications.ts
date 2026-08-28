@@ -52,17 +52,27 @@ export async function refreshDailyReminder(): Promise<void> {
   }
 
   const items = await getAllItems();
-  const expiringCount = items.filter((item) => daysUntil(item.expiryDate) <= settings.reminderDaysBefore).length;
+  const expiredCount = items.filter((item) => daysUntil(item.expiryDate) < 0).length;
+  const expiringCount = items.filter((item) => daysUntil(item.expiryDate) >= 0 && daysUntil(item.expiryDate) <= settings.reminderDaysBefore).length;
 
-  if (expiringCount === 0) {
+  if (expiredCount === 0 && expiringCount === 0) {
     return;
+  }
+
+  let body = '';
+  if (expiredCount > 0 && expiringCount > 0) {
+    body = `您有 ${expiredCount} 件商品已过期，${expiringCount} 件即将过期，请及时处理`;
+  } else if (expiredCount > 0) {
+    body = `您有 ${expiredCount} 件商品已过期，请及时处理`;
+  } else {
+    body = `您有 ${expiringCount} 件商品即将过期，请及时处理`;
   }
 
   await Notifications.scheduleNotificationAsync({
     identifier: DAILY_CHECK_IDENTIFIER,
     content: {
       title: '过期提醒',
-      body: `您有 ${expiringCount} 件商品即将过期，请及时处理`,
+      body,
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
