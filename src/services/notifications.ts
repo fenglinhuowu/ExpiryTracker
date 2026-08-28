@@ -5,7 +5,7 @@ import { getSettings } from './settings';
 import { daysUntil } from '../utils/date';
 
 const DAILY_CHECK_IDENTIFIER = 'daily-expiry-check';
-const CHANNEL_ID = 'expiry-reminders';
+const CHANNEL_ID = 'expiry-reminders-v2';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -22,6 +22,7 @@ export async function requestNotificationPermissions(): Promise<boolean> {
       name: '过期提醒',
       importance: Notifications.AndroidImportance.HIGH,
       sound: 'default',
+      vibrationPattern: [0, 250, 250, 250],
     });
   }
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -64,6 +65,7 @@ export async function refreshDailyReminder(): Promise<void> {
     content: {
       title: '过期提醒',
       body: `您有 ${soonCount} 件商品即将过期，请及时处理`,
+      sound: 'default',
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
