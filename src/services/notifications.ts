@@ -39,6 +39,8 @@ export async function requestNotificationPermissions(): Promise<boolean> {
       importance: Notifications.AndroidImportance.MAX,
       enableVibrate: true,
       sound: 'default',
+      bypassDnd: true, // 允许绕过勿扰模式
+      lockscreenVisibility: Notifications.AndroidVisibility.PUBLIC,
       audioAttributes: {
         usage: Notifications.AndroidAudioUsage.ALARM,
         contentType: Notifications.AndroidAudioContentType.SONIFICATION,
@@ -91,6 +93,7 @@ async function refreshDailyReminderInternal(): Promise<void> {
       vibrate: [0, 500, 300, 500, 300, 500],
       sticky: true,
       autoDismiss: false,
+      color: '#d9534f', // 醒目的颜色
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
