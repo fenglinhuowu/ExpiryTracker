@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system/legacy';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { addItem } from '../services/db';
 import { refreshDailyReminder } from '../services/notifications';
@@ -58,7 +59,23 @@ export default function AddItemScreen({ onSaved }: Props) {
       return;
     }
 
-    await addItem(name.trim(), expiryDate, location.trim(), photoUri);
+    let finalPhotoUri = photoUri;
+    // Copy image from cache to permanent location
+    if (photoUri && !photoUri.startsWith('file://' + FileSystem.documentDirectory)) {
+      try {
+        const fileName = photoUri.split('/').pop() || `photo_${Date.now()}.jpg`;
+        const newPath = `${FileSystem.documentDirectory}${fileName}`;
+        await FileSystem.copyAsync({
+          from: photoUri,
+          to: newPath,
+        });
+        finalPhotoUri = newPath;
+      } catch (error) {
+        console.error('Failed to copy image to permanent storage:', error);
+      }
+    }
+
+    await addItem(name.trim(), expiryDate, location.trim(), finalPhotoUri);
     await refreshDailyReminder();
     setName('');
     setExpiryDate('');

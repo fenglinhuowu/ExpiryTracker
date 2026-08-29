@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import CollapsibleSection from '../components/CollapsibleSection';
 import ItemRow from '../components/ItemRow';
 import { deleteItem, getAllItems, Item } from '../services/db';
@@ -35,43 +36,47 @@ export default function HomeScreen({ refreshKey }: Props) {
   const normal = items.filter((item) => daysUntil(item.expiryDate) > reminderDaysBefore);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>商品临期提醒助手</Text>
-      <CollapsibleSection title="即将过期" count={soon.length} tintColor="#d9534f">
-        {soon.length === 0 ? (
-          <Text style={styles.empty}>暂无即将过期的商品</Text>
-        ) : (
-          <FlatList
-            data={soon}
-            keyExtractor={(item) => String(item.id)}
-            renderItem={({ item }) => <ItemRow item={item} onDelete={handleDelete} />}
-            scrollEnabled={false}
-          />
-        )}
-      </CollapsibleSection>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.title}>商品临期提醒助手</Text>
+        <CollapsibleSection title="即将过期" count={soon.length} tintColor="#d9534f">
+          {soon.length === 0 ? (
+            <Text style={styles.empty}>暂无即将过期的商品</Text>
+          ) : (
+            <FlatList
+              data={soon}
+              keyExtractor={(item) => String(item.id)}
+              renderItem={({ item }) => <ItemRow item={item} onDelete={handleDelete} />}
+              scrollEnabled={false}
+            />
+          )}
+        </CollapsibleSection>
 
-      <CollapsibleSection title="正常" count={normal.length} tintColor="#5cb85c">
-        {normal.length === 0 ? (
-          <Text style={styles.empty}>暂无商品</Text>
-        ) : (
-          <FlatList
-            data={normal}
-            keyExtractor={(item) => String(item.id)}
-            renderItem={({ item }) => <ItemRow item={item} onDelete={handleDelete} />}
-            scrollEnabled={false}
-          />
-        )}
-      </CollapsibleSection>
-    </View>
+        <CollapsibleSection title="正常" count={normal.length} tintColor="#5cb85c">
+          {normal.length === 0 ? (
+            <Text style={styles.empty}>暂无商品</Text>
+          ) : (
+            <FlatList
+              data={normal}
+              keyExtractor={(item) => String(item.id)}
+              renderItem={({ item }) => <ItemRow item={item} onDelete={handleDelete} />}
+              scrollEnabled={false}
+            />
+          )}
+        </CollapsibleSection>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingVertical: 60,
-    paddingHorizontal: 20,
     backgroundColor: '#fff',
+  },
+  scrollContent: {
+    paddingVertical: 20,
+    paddingHorizontal: 20,
   },
   title: {
     fontSize: 20,

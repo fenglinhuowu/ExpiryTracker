@@ -26,10 +26,10 @@ function getDb(): Promise<SQLite.SQLiteDatabase> {
         );
       `);
       // Migration: add photoUri column if it doesn't exist
-      try {
+      const tableInfo = (await db.getAllAsync(`PRAGMA table_info(items);`)) as any[];
+      const hasPhotoUri = tableInfo.some((col) => col.name === 'photoUri');
+      if (!hasPhotoUri) {
         await db.execAsync(`ALTER TABLE items ADD COLUMN photoUri TEXT;`);
-      } catch {
-        // column already exists
       }
       return db;
     });

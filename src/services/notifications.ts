@@ -61,9 +61,9 @@ export async function requestNotificationPermissions(): Promise<boolean> {
  * items change, settings change, or the app starts.
  */
 async function refreshDailyReminderInternal(): Promise<void> {
-  const settings = await getSettings();
-
   await Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
+
+  const settings = await getSettings();
 
   if (!settings.notificationsEnabled) {
     return;
