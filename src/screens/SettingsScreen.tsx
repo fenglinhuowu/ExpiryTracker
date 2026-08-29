@@ -38,14 +38,18 @@ export default function SettingsScreen() {
     await refreshDailyReminder();
   };
 
-  const handleTimeChange = (event: any, selectedDate?: Date) => {
+  const handleTimeChange = async (event: any, selectedDate?: Date) => {
     setShowTimePicker(false);
-    if (selectedDate) {
-      setHour(selectedDate.getHours());
-      setMinute(selectedDate.getMinutes());
-      setNotificationTime(selectedDate.getHours(), selectedDate.getMinutes());
-      refreshDailyReminder();
+    if (event?.type !== 'set' || !selectedDate) {
+      return;
     }
+
+    const nextHour = selectedDate.getHours();
+    const nextMinute = selectedDate.getMinutes();
+    setHour(nextHour);
+    setMinute(nextMinute);
+    await setNotificationTime(nextHour, nextMinute);
+    await refreshDailyReminder();
   };
 
   const formatTime = (h: number, m: number) => {

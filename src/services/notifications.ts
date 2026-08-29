@@ -5,7 +5,23 @@ import { getSettings } from './settings';
 import { daysUntil } from '../utils/date';
 
 const DAILY_CHECK_IDENTIFIER = 'daily-expiry-check';
-const CHANNEL_ID = 'expiry-reminders-v2';
+// Android notification channels are immutable for sound/vibration after creation.
+// Bump version to migrate users away from previously silent channels.
+const CHANNEL_ID = 'expiry-reminders-v5';
+let refreshQueue: Promise<void> = Promise.resolve();
+
+export interface NotificationDebugInfo {
+  permissionStatus: string;
+  granted: boolean;
+  canAskAgain: boolean;
+  androidPermissionImportance?: number;
+  channelId?: string;
+  channelName?: string | null;
+  channelImportance?: number;
+  channelSound?: string | null;
+  channelEnableVibrate?: boolean;
+  channelVibrationPattern?: number[] | null;
+}
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -20,8 +36,13 @@ export async function requestNotificationPermissions(): Promise<boolean> {
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
       name: '过期提醒',
-      importance: Notifications.AndroidImportance.HIGH,
+      importance: Notifications.AndroidImportance.MAX,
+      enableVibrate: true,
       sound: 'default',
+      audioAttributes: {
+        usage: Notifications.AndroidAudioUsage.ALARM,
+        contentType: Notifications.AndroidAudioContentType.SONIFICATION,
+      },
       vibrationPattern: [0, 250, 250, 250],
     });
   }
@@ -39,10 +60,10 @@ export async function requestNotificationPermissions(): Promise<boolean> {
  * daily 09:00 reminder with up-to-date content. Should be called whenever
  * items change, settings change, or the app starts.
  */
-export async function refreshDailyReminder(): Promise<void> {
+async function refreshDailyReminderInternal(): Promise<void> {
   const settings = await getSettings();
 
-  await Notifications.cancelScheduledNotificationAsync(DAILY_CHECK_IDENTIFIER).catch(() => {});
+  await Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
 
   if (!settings.notificationsEnabled) {
     return;
@@ -66,6 +87,10 @@ export async function refreshDailyReminder(): Promise<void> {
       title: '过期提醒',
       body: `您有 ${soonCount} 件商品即将过期，请及时处理`,
       sound: 'default',
+      priority: Notifications.AndroidNotificationPriority.MAX,
+      vibrate: [0, 500, 300, 500, 300, 500],
+      sticky: true,
+      autoDismiss: false,
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
@@ -74,4 +99,17 @@ export async function refreshDailyReminder(): Promise<void> {
       channelId: CHANNEL_ID,
     },
   });
+}
+
+export function refreshDailyReminder(): Promise<void> {
+  refreshQueue = refreshQueue
+    .catch(() => {})
+    .then(async () => {
+      try {
+        await refreshDailyReminderInternal();
+      } catch (error) {
+        console.error('refreshDailyReminder failed:', error);
+      }
+    });
+  return refreshQueue;
 }
